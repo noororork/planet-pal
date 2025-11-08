@@ -4,12 +4,12 @@ import { getFirestore } from 'firebase/firestore';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyClMNxRbr0aftnQdM1po3lBx6laVCtALVM",
-  authDomain: "planet-pal-45bfd.firebaseapp.com",
-  projectId: "planet-pal-45bfd",
-  storageBucket: "planet-pal-45bfd.firebasestorage.app",
-  messagingSenderId: "425454815161",
-  appId: "1:425454815161:web:78edbf1b11a457d5279868"
+  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID
 };
 
 const app = initializeApp(firebaseConfig);
