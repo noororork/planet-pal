@@ -1,6 +1,66 @@
-import React from "react";
-import MainScreen from "./pages/MainScreen.js";
+// import { StatusBar } from 'expo-status-bar';
+// import { StyleSheet, Text, View } from 'react-native';
+
+// export default function App() {
+//   return (
+//     <View style={styles.container}>
+//       <Text>Open up App.js to start working on your app! loool</Text>
+//       <StatusBar style="auto" />
+//     </View>
+//   );
+// }
+
+// const styles = StyleSheet.create({
+//   container: {
+//     flex: 1,
+//     backgroundColor: '#fff',
+//     alignItems: 'center',
+//     justifyContent: 'center',
+//   },
+// });
+
+import React, { useState } from 'react';
+import { StatusBar } from 'expo-status-bar';
+import Login from './pages/login';
+import SignUp from './pages/signup';
+import Home from './pages/home';
 
 export default function App() {
-    return <MainScreen/ >;
+  const [currentScreen, setCurrentScreen] = useState('login'); // 'login', 'signup', 'home'
+  const [currentUser, setCurrentUser] = useState(null);
+
+  const navigateToSignUp = () => setCurrentScreen('signup');
+  const navigateToLogin = () => setCurrentScreen('login');
+  const navigateToHome = (user) => {
+    setCurrentUser(user);
+    setCurrentScreen('home');
+  };
+  const handleLogout = () => {
+    setCurrentUser(null);
+    setCurrentScreen('login');
+  };
+
+  return (
+    <>
+      {currentScreen === 'login' && (
+        <Login 
+          onNavigateToSignUp={navigateToSignUp}
+          onLoginSuccess={navigateToHome}
+        />
+      )}
+      {currentScreen === 'signup' && (
+        <SignUp 
+          onNavigateToLogin={navigateToLogin}
+          onSignUpSuccess={navigateToHome}
+        />
+      )}
+      {currentScreen === 'home' && (
+        <Home 
+          currentUser={currentUser}
+          onLogout={handleLogout}
+        />
+      )}
+      <StatusBar style="auto" />
+    </>
+  );
 }
