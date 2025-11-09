@@ -11,7 +11,7 @@ import {
 import { db, auth } from '../firebaseConfig';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
-export default function TasksScreen({ onBack }) {
+export default function TasksScreen({ onBack, onProgressUpdate }) {
   const [tasks, setTasks] = useState({
     water: null,
     meals: null,
@@ -24,7 +24,8 @@ export default function TasksScreen({ onBack }) {
     water: { label: 'Drink 8 Glasses of Water', icon: '💧' },
     meals: { label: 'Eat 3 Meals', icon: '🍽️' },
     exercise: { label: 'Exercise 30 Minutes', icon: '🏃' },
-    sleep: { label: 'Sleep 7-8 Hours', icon: '😴' }
+    sleep: { label: 'Sleep 7-8 Hours', icon: '😴' },
+    meditation: { label: 'Meditate for 10 minutes', icon: '🧘' }
   };
 
   useEffect(() => {
@@ -93,7 +94,14 @@ export default function TasksScreen({ onBack }) {
 
   const getCompletionPercentage = () => {
     const completed = Object.values(tasks).filter(v => v === true).length;
-    return Math.round((completed / 4) * 100);
+    const percentage = Math.round((completed / 5) * 100);
+
+    // Notify parent (App.js)
+    if (onProgressUpdate) {
+      onProgressUpdate(percentage);
+    }
+    
+    return percentage;
   };
 
   const renderTaskItem = (taskKey) => {
