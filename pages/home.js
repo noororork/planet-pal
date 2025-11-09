@@ -110,12 +110,12 @@ const styles = StyleSheet.create({
         zIndex: 10,
     },
     topIcon: {
-        backgroundColor: 'rgba(45, 36, 99, 0.8)', // Semi-transparent dark background
+        backgroundColor: '#325a6dff', // Semi-transparent dark background
         paddingHorizontal: 10,
         paddingVertical: 8,
         borderRadius: 20,
         borderWidth: 1,
-        borderColor: '#7C3AED', // Violet border
+        borderColor: '#52869eff', // Violet border
     },
     topIconText: {
         color: '#fff',
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     planetName: {
         fontSize: 22, // Increased size for prominence
         fontWeight: 'bold',
-        color: '#A78BFA',
+        color: '#52869eff',
         marginBottom: 30, // Increased spacing below
     },
     // --- END ENHANCED WELCOME STYLES ---
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
     },
     button: {
         width: '100%',
-        backgroundColor: '#7C3AED',
+        backgroundColor: '#52869eff',
         padding: 16,
         borderRadius: 8,
         alignItems: 'center',
