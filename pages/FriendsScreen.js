@@ -7,7 +7,10 @@ import {
   ScrollView,
   TextInput,
   Alert,
-  ActivityIndicator
+  ActivityIndicator,
+  Dimensions,
+  Image,
+  ImageBackground
 } from 'react-native';
 import { db, auth } from '../firebaseConfig';
 import { 
@@ -30,6 +33,7 @@ export default function FriendsScreen({ onBack, currentUser }) {
   const [searchResults, setSearchResults] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
+  const { width, height } = Dimensions.get('window');
 
   useEffect(() => {
     loadFriends();
@@ -51,6 +55,7 @@ export default function FriendsScreen({ onBack, currentUser }) {
 
       const snapshot = await getDocs(q);
       const friendsList = [];
+      
 
       for (const docSnap of snapshot.docs) {
         const data = docSnap.data();
@@ -241,14 +246,85 @@ export default function FriendsScreen({ onBack, currentUser }) {
   };
 
 
-  const renderFriend = (friend) => (
-    <View key={friend.id} style={styles.userCard}>
-      <View style={styles.userInfo}>
-        <Text style={styles.userName}>{friend.displayName}</Text>
-        <Text style={styles.userPlanet}>🌍 {friend.planetName}</Text>
+  const getButtonPosition = (index, totalFriends) => {
+    const centerX = width / 2;
+    const centerY = height / 2;
+    
+    switch (totalFriends) {
+      case 1:
+        return { top: centerY - 40, left: centerX - 40 };
+      
+      case 2:
+        return index === 0
+          ? { top: centerY - 40, left: centerX - 140 }
+          : { top: centerY - 40, left: centerX + 60 };
+      
+      case 3:
+        if (index === 0) {
+          return { top: centerY - 120, left: centerX - 40 };
+        } else if (index === 1) {
+          return { top: centerY + 20, left: centerX - 140 };
+        } else {
+          return { top: centerY + 20, left: centerX + 60 };
+        }
+      
+      case 4:
+        if (index === 0) {
+          return { top: centerY - 120, left: centerX - 140 };
+        } else if (index === 1) {
+          return { top: centerY - 120, left: centerX + 60 };
+        } else if (index === 2) {
+          return { top: centerY + 20, left: centerX - 140 };
+        } else {
+          return { top: centerY + 20, left: centerX + 60 };
+        }
+      
+      case 5:
+        if (index === 0) {
+          return { top: centerY - 140, left: centerX - 40 };
+        } else if (index === 1) {
+          return { top: centerY - 40, left: centerX - 140 };
+        } else if (index === 2) {
+          return { top: centerY - 40, left: centerX + 60 };
+        } else if (index === 3) {
+          return { top: centerY + 60, left: centerX - 100 };
+        } else {
+          return { top: centerY + 60, left: centerX + 20 };
+        }
+      
+      default:
+        return { top: centerY - 40, left: centerX - 40 };
+    }
+  };
+
+  // Navigate to friend's planet
+  const visitPlanet = (friend) => {
+    onVisitPlanet(friend);
+  };
+
+  // Render individual friend with your database structure
+  const renderFriend = (friend, index) => {
+    const position = getButtonPosition(index, friends.length);
+    
+    return (
+      <TouchableOpacity
+      key={friend.id}
+      style={[styles.planetButton, position]}
+      onPress={() => visitPlanet(friend)}
+      activeOpacity={0.8}>
+      <Image source={require('../resources/glow.png')} style={styles.planetImage} />
+
+      <View style={styles.planetTextContainer}>
+        <Text style={styles.planetDisplayName}>
+          {friend.displayName || friend.username}
+        </Text>
+        <Text style={styles.planetName}>
+          {friend.planetName || `${friend.username}'s Planet`}
+        </Text>
       </View>
-    </View>
-  );
+    </TouchableOpacity>
+    );
+  };
 
   const renderFriendRequest = (request) => (
     <View key={request.id} style={styles.userCard}>
@@ -328,13 +404,15 @@ export default function FriendsScreen({ onBack, currentUser }) {
 
       <ScrollView style={styles.content}>
         {activeTab === 'friends' && (
-          <View>
-            {friends.length === 0 ? (
+          <View style={styles.friendsContainer}>
+          {friends.length === 0 ? (
+            <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>No friends yet. Search for users to add!</Text>
-            ) : (
-              friends.map(friend => renderFriend(friend))
-            )}
-          </View>
+            </View>
+          ) : (
+            friends.map((friend, index) => renderFriend(friend, index))
+          )}
+        </View>
         )}
 
         {activeTab === 'requests' && (
@@ -388,6 +466,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#1E1B4B',
+  },
+  friendsBackground: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+  },
+  friendsContainer: {
+    flex: 1,
+    position: 'relative',
+    width: '100%',
+    height: '100%',
   },
   header: {
     paddingTop: 60,
@@ -529,4 +619,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  friendsContainer: {
+    flex: 1,
+    position: 'relative', // Important for absolute positioning to work
+  },
+  
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  planetImage: {
+    height: 50,
+    width: 50
+  }
 });

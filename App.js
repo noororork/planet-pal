@@ -6,7 +6,7 @@ import Home from './pages/home';
 import PlanetPage from './pages/PlanetPage';
 import TasksScreen from './pages/TasksScreen';
 import ChatbotScreen from './pages/ChatbotScreen';
-import FriendsPage from './pages/FriendsPage';
+import FriendsScreen from './pages/FriendsScreen';
 import FriendRequestPage from './pages/FriendRequestPage';
 
 export default function App() {
@@ -101,7 +101,7 @@ export default function App() {
       )}
 
       {currentScreen === 'friends' && (
-        <FriendsPage 
+        <FriendsScreen 
           onBack={() => setCurrentScreen('planetpage')}
           onVisitPlanet={navigateToFriendPlanet}
         />
@@ -124,12 +124,6 @@ export default function App() {
           onBack={() => setCurrentScreen('friends')}
         />
       )}
-
-
-        <FriendsScreen 
-          onBack={() => setCurrentScreen('home')}
-          currentUser={currentUser}
-        />
 
       <StatusBar style="auto" />
     </>
