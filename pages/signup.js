@@ -5,7 +5,8 @@ import {
   View, 
   TextInput, 
   TouchableOpacity,
-  Alert 
+  Alert,
+  ImageBackground // <-- Added ImageBackground
 } from 'react-native';
 import { auth, db } from '../firebaseConfig';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
@@ -27,7 +28,7 @@ export default function SignUpScreen({ onNavigateToLogin, onSignUpSuccess }) {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const userId = userCredential.user.uid;
 
-      // Save user data to Firestore
+      // Save user data to Firestore (Functionality preserved from file 1)
       await setDoc(doc(db, 'users', userId), {
         planetName: planetName,
         displayName: displayName,
@@ -44,58 +45,75 @@ export default function SignUpScreen({ onNavigateToLogin, onSignUpSuccess }) {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>🌍 Wellness Planet</Text>
-      <Text style={styles.subtitle}>Create Account</Text>
+    <ImageBackground
+      source={require('../resources/9.png')} // Replace with your actual image path if different
+      style={styles.background}
+      resizeMode="cover"
+    >
+      <View style={styles.contentContainer}>
+        <Text style={styles.title}>Wellness Planet</Text> 
+        <Text style={styles.subtitle}>Create Account</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Display Name (for friends to find you)"
-        value={displayName}
-        onChangeText={setDisplayName}
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="Display Name (for friends to find you)"
+          placeholderTextColor="#6B7280"
+          value={displayName}
+          onChangeText={setDisplayName}
+        />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Planet Name"
-        value={planetName}
-        onChangeText={setPlanetName}
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="Planet Name"
+          placeholderTextColor="#6B7280"
+          value={planetName}
+          onChangeText={setPlanetName}
+        />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="Email"
+          placeholderTextColor="#6B7280"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          placeholderTextColor="#6B7280"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
 
-      <TouchableOpacity style={styles.button} onPress={handleSignUp}>
-        <Text style={styles.buttonText}>Sign Up</Text>
-      </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={handleSignUp}>
+          <Text style={styles.buttonText}>Sign Up</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity onPress={onNavigateToLogin}>
-        <Text style={styles.link}>
-          Already have an account? Login
-        </Text>
-      </TouchableOpacity>
-    </View>
+        <TouchableOpacity onPress={onNavigateToLogin}>
+          <Text style={styles.link}>
+            Already have an account? Login
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </ImageBackground>
   );
 }
 
+// Styles are copied from the second file for consistency
 const styles = StyleSheet.create({
-  container: {
+  background: {
     flex: 1,
-    backgroundColor: '#1E1B4B',
+    width: '100%',
+    height: '100%',
+  },
+  contentContainer: {
+    flex: 1,
+    // Semi-transparent overlay for text readability over the image
+    backgroundColor: 'rgba(30, 27, 75, 0.7)', 
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
@@ -108,7 +126,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 18,
-    color: '#C4B5FD',
+    color: '#fff',
     marginBottom: 32,
   },
   input: {
@@ -118,10 +136,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 12,
     fontSize: 16,
+    color: '#1E1B4B', // Ensure input text is dark
   },
   button: {
     width: '100%',
-    backgroundColor: '#7C3AED',
+    backgroundColor: '#52869eff', // Button color from the second file
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
@@ -133,7 +152,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   link: {
-    color: '#A78BFA',
+    color: '#fff', // White link color for contrast
     marginTop: 20,
     fontSize: 14,
     textDecorationLine: 'underline',
