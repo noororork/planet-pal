@@ -27,7 +27,7 @@ import Home from './pages/home';
 import PlanetPage from './pages/PlanetPage';
 
 export default function App() {
-  const [planetHealth, setPlanetHealth] = useState(100);
+  const [planetHealth, setPlanetHealth] = useState(27);
   const [currentScreen, setCurrentScreen] = useState('login'); // 'login', 'signup', 'home'
   const [currentUser, setCurrentUser] = useState(null);
 
@@ -65,7 +65,7 @@ export default function App() {
           currentUser={currentUser}
           onLogout={handleLogout}
           onNextPage={navigateToNext}
-          health={planetHealth}          
+          planetHealth={planetHealth}          
           setHealth={setPlanetHealth} 
         />
       )}
