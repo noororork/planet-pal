@@ -30,7 +30,9 @@ export default function App() {
   const navigateToLogin = () => setCurrentScreen('login');
   
   const navigateToHome = (user) => {
-    setCurrentUser(user);
+    if (user) {
+        setCurrentUser(user);
+    }
     setCurrentScreen('home');
   };
 
@@ -73,23 +75,28 @@ export default function App() {
       )}
 
       {currentScreen === 'tasks' && (
-        <TasksScreen onBack={() => setCurrentScreen('home')} />
+        <TasksScreen onBack={navigateToHome} />
       )}
 
       {currentScreen === 'planetpage' && (
-        <PlanetPage health={planetHealth} setHealth={setPlanetHealth} />
+        <PlanetPage 
+          health={planetHealth} 
+          setHealth={setPlanetHealth} 
+          // 🚨 FIX APPLIED: Pass the home navigation function to PlanetPage
+          onNavigateToHome={navigateToHome}
+        />
       )}
 
       {currentScreen === 'chatbot' && (
         <ChatbotScreen 
-          onBack={() => setCurrentScreen('home')}
+          onBack={navigateToHome} // Use navigateToHome for back action
           currentUser={currentUser}
         />
       )}
 
       {currentScreen === 'friends' && (
         <FriendsScreen 
-          onBack={() => setCurrentScreen('home')}
+          onBack={navigateToHome} // Use navigateToHome for back action
           currentUser={currentUser}
         />
       )}
