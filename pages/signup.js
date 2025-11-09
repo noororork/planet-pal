@@ -34,6 +34,20 @@ export default function SignUpScreen({ onNavigateToLogin, onSignUpSuccess }) {
       });
 
       onSignUpSuccess({ email, planetName });
+      const userDocRef = doc(db, 'friends', auth.currentUser.uid);
+
+      // Use 'setDoc' to create the necessary document container
+      try {
+        await setDoc(userDocRef, { 
+          // This document acts as the container for the 'userFriends' subcollection
+          initialized: true,
+          joinDate: new Date(),
+        });
+        console.log("Friends container initialized for new user.");
+
+      } catch (error) {
+        console.error("Error initializing friends container:", error);
+      }
       Alert.alert('Success', 'Account created!');
     } catch (error) {
       Alert.alert('Error', error.message);

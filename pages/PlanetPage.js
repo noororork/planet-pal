@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { ImageBackground, StyleSheet, View, Text, Button, TouchableOpacity } from "react-native";
+import { ImageBackground, StyleSheet, View, Text, Button, TouchableOpacity, Image } from "react-native";
 
-export default function PlanetPage({ health, setHealth }) {
+export default function PlanetPage({ health, setHealth, onNavigateToFriends }) {
     const [backgroundImage, setBackgroundImage] = useState(require("../resources/9.png"));
 
     const updateHealthImage = (health) => {
@@ -16,14 +16,19 @@ export default function PlanetPage({ health, setHealth }) {
         setBackgroundImage(updateHealthImage(health));
     }, [health]);
 
-    return (<ImageBackground source = {backgroundImage} style = {styles.background} resizeMode = "cover"></ImageBackground>);
+    return (<ImageBackground source = {backgroundImage} style = {styles.background} resizeMode = "cover">
+        <TouchableOpacity onPress={onNavigateToFriends} style={styles.iconButton}>
+                    <Image 
+                        source={require("../resources/friend_icon.png")} 
+                        style={styles.button}
+                    />
+                </TouchableOpacity>
+    </ImageBackground>);
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        alignItems: 'center',
-        justifyContent: 'space-between',
         padding: 20,
       },
     background: {
@@ -38,4 +43,11 @@ const styles = StyleSheet.create({
         marginBottom: 8,
         marginTop: 100,
       },
+    button: {
+        width: 50,
+        height: 50,
+        position: 'absolute',
+        top: 20,
+        right: 20,
+    }
 });

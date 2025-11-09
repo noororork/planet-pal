@@ -6,11 +6,14 @@ import Home from './pages/home';
 import PlanetPage from './pages/PlanetPage';
 import TasksScreen from './pages/TasksScreen';
 import ChatbotScreen from './pages/ChatbotScreen';
+import FriendsPage from './pages/FriendsPage';
+import FriendRequestPage from './pages/FriendRequestPage';
 
 export default function App() {
   const [planetHealth, setPlanetHealth] = useState(27);
   const [currentScreen, setCurrentScreen] = useState('login'); // 'login', 'signup', 'home'
   const [currentUser, setCurrentUser] = useState(null);
+  const [selectedFriend, setSelectedFriend] = useState(null);
 
   const navigateToNext = (healthValue) => {
     setPlanetHealth(healthValue);
@@ -36,6 +39,19 @@ export default function App() {
 
   const navigateToTasks = () => {
     setCurrentScreen('tasks');
+  };
+
+  const navigateToFriends = () => {
+    setCurrentScreen('friends');
+  };
+
+  const navigateToFriendPlanet = (friend) => {
+    setSelectedFriend(friend);
+    setCurrentScreen('friendplanet');
+  };
+
+  const navigateToAddFriends = () => {
+    setCurrentScreen('addfriends');
   };
 
   return (
@@ -71,7 +87,9 @@ export default function App() {
       )}
 
       {currentScreen === 'planetpage' && (
-        <PlanetPage health={planetHealth} setHealth={setPlanetHealth} />
+        <PlanetPage health={planetHealth} 
+        setHealth={setPlanetHealth} 
+        onNavigateToFriends={navigateToFriends}/>
       )}
 
       {currentScreen === 'chatbot' && (
@@ -80,6 +98,32 @@ export default function App() {
           currentUser={currentUser}
         />
       )}
+
+      {currentScreen === 'friends' && (
+        <FriendsPage 
+          onBack={() => setCurrentScreen('planetpage')}
+          onVisitPlanet={navigateToFriendPlanet}
+        />
+      )}
+
+      {currentScreen === 'friendplanet' && selectedFriend && (
+        <PlanetPage 
+          health={100} // make sure to chnage to fetch from their database
+          setHealth={() => {}} // read only
+          isFriendPlanet={true}
+          friendData={selectedFriend}
+          onNavigateToFriends={navigateToFriends}
+          onBack={() => setCurrentScreen('friends')}
+          onAddFriends={navigateToAddFriends}
+        />
+      )}
+
+      {currentScreen === 'addfriends' && (
+        <FriendRequestPage 
+          onBack={() => setCurrentScreen('friends')}
+        />
+      )}
+
 
       <StatusBar style="auto" />
     </>
