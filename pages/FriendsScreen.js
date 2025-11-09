@@ -465,7 +465,7 @@ export default function FriendsScreen({ onBack, currentUser }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1E1B4B',
+    backgroundColor: '#060644',
   },
   friendsBackground: {
     flex: 1,
@@ -483,16 +483,17 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 20,
     paddingHorizontal: 20,
-    backgroundColor: '#2D2463',
+    backgroundColor: '#9ec694',
     borderBottomWidth: 1,
-    borderBottomColor: '#4C3A8F',
+    borderBottomColor: '#566253',
   },
   backButton: {
     marginBottom: 10,
   },
   backButtonText: {
-    color: '#A78BFA',
+    color: '#fff',
     fontSize: 16,
+    fontWeight: 'bold',
   },
   title: {
     fontSize: 24,
@@ -501,9 +502,9 @@ const styles = StyleSheet.create({
   },
   tabs: {
     flexDirection: 'row',
-    backgroundColor: '#2D2463',
+    backgroundColor: '#9ec694',
     borderBottomWidth: 1,
-    borderBottomColor: '#4C3A8F',
+    borderBottomColor: '#566253',
   },
   tab: {
     flex: 1,
@@ -512,10 +513,10 @@ const styles = StyleSheet.create({
   },
   activeTab: {
     borderBottomWidth: 3,
-    borderBottomColor: '#7C3AED',
+    borderBottomColor: '#566253',
   },
   tabText: {
-    color: '#8B7BC3',
+    color: '#566253',
     fontSize: 14,
     fontWeight: '500',
   },
@@ -533,7 +534,7 @@ const styles = StyleSheet.create({
     marginTop: 40,
   },
   userCard: {
-    backgroundColor: '#2D2463',
+    backgroundColor: '#060644',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -632,5 +633,15 @@ const styles = StyleSheet.create({
   planetImage: {
     height: 50,
     width: 50
+  },
+  planetDisplayName: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  planetName: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   }
 });
