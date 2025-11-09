@@ -6,6 +6,7 @@ import Home from './pages/home';
 import PlanetPage from './pages/PlanetPage';
 import TasksScreen from './pages/TasksScreen';
 import ChatbotScreen from './pages/ChatbotScreen';
+import FriendsScreen from './pages/FriendsScreen';
 
 export default function App() {
   const [planetHealth, setPlanetHealth] = useState(27);
@@ -19,6 +20,10 @@ export default function App() {
 
   const navigateToChatbot = () => {
     setCurrentScreen('chatbot');
+  };
+
+  const navigateToFriends = () => {
+    setCurrentScreen('friends');
   };
 
   const navigateToSignUp = () => setCurrentScreen('signup');
@@ -61,6 +66,7 @@ export default function App() {
           onNextPage={navigateToNext}
           onNavigateToTasks={navigateToTasks}
           onNavigateToChatbot={navigateToChatbot}
+          onNavigateToFriends={navigateToFriends}
           planetHealth={planetHealth}          
           setHealth={setPlanetHealth} 
         />
@@ -76,6 +82,13 @@ export default function App() {
 
       {currentScreen === 'chatbot' && (
         <ChatbotScreen 
+          onBack={() => setCurrentScreen('home')}
+          currentUser={currentUser}
+        />
+      )}
+
+      {currentScreen === 'friends' && (
+        <FriendsScreen 
           onBack={() => setCurrentScreen('home')}
           currentUser={currentUser}
         />
