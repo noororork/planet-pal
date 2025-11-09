@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { 
   StyleSheet, 
   Text, 
@@ -8,16 +8,43 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator
+  ActivityIndicator,
+  Linking // Used to open source links, if needed
 } from 'react-native';
-import { db, auth } from '../firebaseConfig';
-import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 
-export default function ChatbotScreen({ onBack, currentUser }) {
+// --- MOCK FIREBASE SETUP (REQUIRED FOR SINGLE-FILE DEMO) ---
+// IMPORTANT: In your real app, replace this with your actual Firebase/data fetching logic.
+const MOCK_TASK_DATA = [
+  { date: '2024-11-01', completedCount: 3, totalCount: 4 },
+  { date: '2024-11-02', completedCount: 4, totalCount: 4 },
+  { date: '2024-11-03', completedCount: 2, totalCount: 4 },
+  { date: '2024-11-04', completedCount: 4, totalCount: 4 },
+  { date: '2024-11-05', completedCount: 3, totalCount: 4 },
+];
+
+const getRecentTaskData = async () => {
+  await new Promise(resolve => setTimeout(resolve, 300));
+  return MOCK_TASK_DATA;
+};
+
+const mockCurrentUser = {
+  planetName: 'Aether',
+  uid: 'mock-user-123',
+};
+// --- END MOCK SETUP ---
+
+
+// Gemini API Setup
+const apiKey = ""; // Will be provided by the execution environment
+const apiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+
+export default function ChatbotScreen({ onBack, currentUser = mockCurrentUser }) {
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: `Hi ${currentUser?.planetName || 'there'}! 🌟 I'm your wellness companion. I can help you with wellness tips, answer questions about your daily tasks, or just chat about health and wellbeing. How can I help you today?`
+      content: `Hi ${currentUser?.planetName || 'there'}! 🌟 I'm your Wellness Companion. I can help you with wellness tips, answer questions about your daily tasks, or just chat about health and wellbeing. How can I help you today?`,
+      sources: []
     }
   ]);
   const [inputText, setInputText] = useState('');
@@ -25,98 +52,126 @@ export default function ChatbotScreen({ onBack, currentUser }) {
   const scrollViewRef = useRef();
 
   // Auto-scroll to bottom when messages update
-  useEffect(() => {
+  const scrollToBottom = () => {
     scrollViewRef.current?.scrollToEnd({ animated: true });
+  };
+  
+  // Ensures scroll runs after layout/content updates
+  useEffect(() => {
+    scrollToBottom();
   }, [messages]);
 
-  const getRecentTaskData = async () => {
-    try {
-      const userId = auth.currentUser?.uid;
-      if (!userId) return null;
-
-      const tasksRef = collection(db, 'users', userId, 'dailyTasks');
-      const q = query(tasksRef, orderBy('date', 'desc'), limit(7));
-      const snapshot = await getDocs(q);
-
-      const taskData = [];
-      snapshot.forEach(doc => {
-        taskData.push(doc.data());
-      });
-
-      return taskData;
-    } catch (error) {
-      console.error('Error fetching task data:', error);
-      return null;
-    }
-  };
-
-  const sendMessage = async () => {
-    if (!inputText.trim()) return;
+  const sendMessage = useCallback(async () => {
+    if (!inputText.trim() || loading) return;
 
     const userMessage = inputText.trim();
     setInputText('');
     
-    // Add user message to chat
-    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    // Add user message to chat immediately
+    setMessages(prev => [...prev, { role: 'user', content: userMessage, sources: [] }]);
     setLoading(true);
 
     try {
-      // Get recent task data for context
+      // 1. Get recent task data for context
       const taskData = await getRecentTaskData();
       
-      // Build context about user's wellness journey
+      // 2. Build context about user's wellness journey
       let contextMessage = '';
+      let completionRate = 0;
       if (taskData && taskData.length > 0) {
-        const totalTasks = taskData.length * 4;
+        const totalPossibleTasks = taskData.length * 4; 
         const completedTasks = taskData.reduce((sum, day) => sum + (day.completedCount || 0), 0);
-        const completionRate = Math.round((completedTasks / totalTasks) * 100);
+        completionRate = Math.round((completedTasks / totalPossibleTasks) * 100);
         
-        contextMessage = `Context: The user has completed ${completionRate}% of their wellness tasks over the last ${taskData.length} days. Recent task completion: ${JSON.stringify(taskData.slice(0, 3))}. `;
+        contextMessage = `User Context: Over the last ${taskData.length} days, the user has completed ${completionRate}% of their total wellness tasks. Recent task completion overview: ${JSON.stringify(taskData.slice(0, 3))}. `;
+      }
+      
+      // 3. Define the LLM's system prompt
+      const systemPrompt = `You are a friendly, supportive wellness companion called "Wellness Companion" for a wellness app called "Wellness Planet" where users track daily tasks (drinking water, eating meals, exercise, sleep). 
+      ${contextMessage}
+      Be encouraging, provide practical wellness advice, and keep responses concise (2-3 paragraphs max). Use emojis occasionally to be friendly. If users ask about their progress, reference their task completion rate of ${completionRate}% to encourage them.`;
+
+      // 4. Construct the chat history for the API call
+      const chatHistory = messages.map(m => ({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: m.content }]
+      })).concat([
+        { role: 'user', parts: [{ text: userMessage }] }
+      ]);
+      
+      // 5. Construct the payload
+      const payload = {
+        contents: chatHistory,
+        tools: [{ "google_search": {} }],
+        config: {
+            systemInstruction: systemPrompt
+        }
+      };
+
+      // 6. Call the Gemini API with exponential backoff
+      const MAX_RETRIES = 3;
+      let response;
+      for (let i = 0; i < MAX_RETRIES; i++) {
+        try {
+          response = await fetch(apiUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+          });
+
+          if (response.ok) break; 
+          
+          if (i < MAX_RETRIES - 1) {
+              await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+          } else {
+              throw new Error('API request failed after multiple retries.');
+          }
+        } catch (e) {
+            if (i === MAX_RETRIES - 1) throw e;
+        }
       }
 
-      // Call Anthropic API
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 1000,
-          system: `You are a friendly, supportive wellness companion for a wellness app called "Wellness Planet" where users track daily tasks (drinking water, eating meals, exercise, sleep). ${contextMessage}Be encouraging, provide practical wellness advice, and keep responses concise (2-3 paragraphs max). Use emojis occasionally to be friendly. If users ask about their progress, reference their task completion data.`,
-          messages: messages.map(m => ({
-            role: m.role,
-            content: m.content
-          })).concat([
-            { role: 'user', content: userMessage }
-          ])
-        })
-      });
-
-      const data = await response.json();
+      const result = await response.json();
+      const candidate = result.candidates?.[0];
       
-      // Extract assistant's response
-      const assistantMessage = data.content
-        .filter(item => item.type === 'text')
-        .map(item => item.text)
-        .join('\n');
+      if (!candidate || !candidate.content?.parts?.[0]?.text) {
+          console.error('API Response Error:', JSON.stringify(result, null, 2));
+          throw new Error('Invalid response structure from API');
+      }
 
-      // Add assistant response to chat
+      // 7. Extract generated text and grounding sources
+      const assistantMessage = candidate.content.parts[0].text;
+      let sources = [];
+      const groundingMetadata = candidate.groundingMetadata;
+      if (groundingMetadata && groundingMetadata.groundingAttributions) {
+          sources = groundingMetadata.groundingAttributions
+              .map(attribution => ({
+                  uri: attribution.web?.uri,
+                  title: attribution.web?.title,
+              }))
+              .filter(source => source.uri && source.title);
+      }
+      
+      // 8. Add assistant response (with sources) to chat
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: assistantMessage 
+        content: assistantMessage,
+        sources: sources 
       }]);
 
     } catch (error) {
       console.error('Error calling chatbot:', error);
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: "I'm sorry, I'm having trouble connecting right now. Please try again! 😊" 
+        content: "I'm sorry, I'm having trouble connecting to the knowledge base right now. Please try again! 😊",
+        sources: []
       }]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [inputText, loading, messages]);
+  
+  // Note: We cannot use onKeyDown in RN, but TextInput handles submission via onSubmitEditing.
 
   const renderMessage = (message, index) => {
     const isUser = message.role === 'user';
@@ -135,6 +190,24 @@ export default function ChatbotScreen({ onBack, currentUser }) {
         ]}>
           {message.content}
         </Text>
+
+        {/* Render Sources */}
+        {!isUser && message.sources && message.sources.length > 0 && (
+          <View style={styles.sourceContainer}>
+            <Text style={styles.sourceHeader}>🔍 Sourced from:</Text>
+            {message.sources.slice(0, 3).map((source, idx) => (
+              <TouchableOpacity 
+                key={idx} 
+                onPress={() => Linking.openURL(source.uri)}
+                style={styles.sourceLink}
+              >
+                <Text style={styles.sourceLinkText} numberOfLines={1}>
+                  • {source.title || source.uri}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
       </View>
     );
   };
@@ -158,12 +231,13 @@ export default function ChatbotScreen({ onBack, currentUser }) {
         ref={scrollViewRef}
         style={styles.messagesContainer}
         contentContainerStyle={styles.messagesContent}
+        onContentSizeChange={scrollToBottom} // Ensure auto-scroll on content update
       >
         {messages.map((message, index) => renderMessage(message, index))}
         {loading && (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="small" color="#A78BFA" />
-            <Text style={styles.loadingText}>Thinking...</Text>
+            <Text style={styles.loadingText}>Companion is thinking...</Text>
           </View>
         )}
       </ScrollView>
@@ -178,9 +252,11 @@ export default function ChatbotScreen({ onBack, currentUser }) {
           placeholderTextColor="#8B7BC3"
           multiline
           maxLength={500}
+          returnKeyType="send"
+          onSubmitEditing={sendMessage} // Allows 'Enter' or 'Send' key to trigger message
         />
         <TouchableOpacity 
-          style={[styles.sendButton, !inputText.trim() && styles.sendButtonDisabled]}
+          style={[styles.sendButton, (!inputText.trim() || loading) && styles.sendButtonDisabled]}
           onPress={sendMessage}
           disabled={!inputText.trim() || loading}
         >
@@ -194,13 +270,13 @@ export default function ChatbotScreen({ onBack, currentUser }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1E1B4B',
+    backgroundColor: '#1E1B4B', // Dark indigo background
   },
   header: {
     paddingTop: 60,
     paddingBottom: 20,
     paddingHorizontal: 20,
-    backgroundColor: '#2D2463',
+    backgroundColor: '#2D2463', // Slightly lighter header
     borderBottomWidth: 1,
     borderBottomColor: '#4C3A8F',
   },
@@ -208,7 +284,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   backButtonText: {
-    color: '#A78BFA',
+    color: '#A78BFA', // Violet accent
     fontSize: 16,
   },
   title: {
@@ -224,19 +300,19 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   messageBubble: {
-    maxWidth: '80%',
+    maxWidth: '85%',
     padding: 12,
     borderRadius: 16,
     marginBottom: 12,
   },
   userBubble: {
     alignSelf: 'flex-end',
-    backgroundColor: '#7C3AED',
+    backgroundColor: '#7C3AED', // Vibrant violet for user
     borderBottomRightRadius: 4,
   },
   assistantBubble: {
     alignSelf: 'flex-start',
-    backgroundColor: '#2D2463',
+    backgroundColor: '#2D2463', // Darker violet for assistant
     borderBottomLeftRadius: 4,
   },
   messageText: {
@@ -247,7 +323,26 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   assistantText: {
-    color: '#E0D7FF',
+    color: '#E0D7FF', // Light violet text
+  },
+  sourceContainer: {
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(124, 58, 237, 0.5)', // Transparent violet line
+  },
+  sourceHeader: {
+    fontSize: 11,
+    color: '#A78BFA',
+    marginBottom: 4,
+    fontWeight: '600',
+  },
+  sourceLink: {
+    paddingVertical: 2,
+  },
+  sourceLinkText: {
+    fontSize: 10,
+    color: '#93C5FD', // Light blue/violet for links
   },
   loadingContainer: {
     flexDirection: 'row',
@@ -282,6 +377,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     maxHeight: 100,
     marginRight: 12,
+    textAlignVertical: 'top', // For Android multiline text
   },
   sendButton: {
     backgroundColor: '#7C3AED',
@@ -289,6 +385,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 20,
     justifyContent: 'center',
+    height: 40,
   },
   sendButtonDisabled: {
     backgroundColor: '#4C3A8F',
