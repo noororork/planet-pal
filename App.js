@@ -10,10 +10,16 @@ import FriendsScreen from './pages/FriendsScreen';
 import FriendRequestPage from './pages/FriendRequestPage';
 
 export default function App() {
-  const [planetHealth, setPlanetHealth] = useState(27);
   const [currentScreen, setCurrentScreen] = useState('login'); // 'login', 'signup', 'home'
   const [currentUser, setCurrentUser] = useState(null);
   const [selectedFriend, setSelectedFriend] = useState(null);
+  const [planetHealth, setPlanetHealth] = useState(100);
+
+  const handleTaskProgress = (percentage) => {
+    // You can convert percentage directly to planet health if you want
+    setPlanetHealth(percentage);
+    };
+
 
   const navigateToNext = (healthValue) => {
     setPlanetHealth(healthValue);
@@ -86,7 +92,9 @@ export default function App() {
       )}
 
       {currentScreen === 'tasks' && (
-        <TasksScreen onBack={navigateToHome} />
+        <TasksScreen onBack={() => setCurrentScreen('home')}
+        onProgressUpdate={handleTaskProgress} 
+        />
       )}
 
       {currentScreen === 'planetpage' && (
