@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ImageBackground, StyleSheet, View, Text, Button, TouchableOpacity } from "react-native";
 
-export default function MainScreen({ currentUser, onLogout, onNextPage}) {
+export default function MainScreen({ currentUser, onLogout, onNextPage, onNavigateToTasks, onNavigateToChatbot }) {
     const [health, setHealth] = useState(100);
     const [backgroundImage, setBackgroundImage] = useState(require("../resources/9.png"));
 
@@ -19,24 +19,42 @@ export default function MainScreen({ currentUser, onLogout, onNextPage}) {
 
     const handleNextPage = () => {
         if (onNextPage) {
-          onNextPage(health); // pass the health value up to App.js
+            onNextPage(health); // pass the health value up to App.js
         }
     };
 
     return (
         <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={onNextPage}>
-            <ImageBackground source = {backgroundImage} style = {styles.background} resizeMode = "cover">
+            <ImageBackground source={backgroundImage} style={styles.background} resizeMode="cover">
                 <View style={styles.container}>
                     <Text style={styles.title}>Welcome!</Text>
                     {currentUser?.planetName && (
                         <Text style={styles.planetName}>Planet: {currentUser.planetName}</Text>
                     )}
-                    <TouchableOpacity style={styles.button} onPress={onLogout}>
-                        <Text style={styles.buttonText}>Logout</Text>
-                    </TouchableOpacity>
+                    
+                    <View style={styles.buttonContainer}>
+                        <TouchableOpacity 
+                            style={styles.button} 
+                            onPress={onNavigateToTasks}
+                        >
+                            <Text style={styles.buttonText}>Daily Tasks</Text>
+                        </TouchableOpacity>
+                        
+                        <TouchableOpacity style={styles.button} onPress={onLogout}>
+                            <Text style={styles.buttonText}>Logout</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity 
+                            style={styles.button} 
+                            onPress={onNavigateToChatbot}
+                            >
+                            <Text style={styles.buttonText}>💬 Wellness Chat</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
             </ImageBackground>
-        </TouchableOpacity>);
+        </TouchableOpacity>
+    );
 }
 
 const styles = StyleSheet.create({
@@ -45,11 +63,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: 20,
-      },
+    },
     background: {
         flex: 1,
         width: "100%",
-        height: "100%s"
+        height: "100%"
     },
     title: {
         fontSize: 60,
@@ -57,12 +75,16 @@ const styles = StyleSheet.create({
         color: '#fff',
         marginBottom: 8,
         marginTop: 100,
-      },
+    },
     planetName: {
         fontSize: 16,
         color: '#A78BFA',
         marginBottom: 20,
-      },
+    },
+    buttonContainer: {
+        width: '100%',
+        marginBottom: 100,
+    },
     button: {
         width: '100%',
         backgroundColor: '#7C3AED',
@@ -70,11 +92,10 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         alignItems: 'center',
         marginTop: 8,
-        marginBottom: 100,
-      },
-      buttonText: {
+    },
+    buttonText: {
         color: '#fff',
         fontSize: 16,
         fontWeight: '600',
-      }
+    }
 });
