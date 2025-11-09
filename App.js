@@ -24,11 +24,17 @@ import { StatusBar } from 'expo-status-bar';
 import Login from './pages/login';
 import SignUp from './pages/signup';
 import Home from './pages/home';
+import PlanetPage from './pages/PlanetPage';
 
 export default function App() {
+  const [planetHealth, setPlanetHealth] = useState(100);
   const [currentScreen, setCurrentScreen] = useState('login'); // 'login', 'signup', 'home'
   const [currentUser, setCurrentUser] = useState(null);
 
+  const navigateToNext = (healthValue) => {
+    setPlanetHealth(healthValue);
+    setCurrentScreen('planetpage');
+  };
   const navigateToSignUp = () => setCurrentScreen('signup');
   const navigateToLogin = () => setCurrentScreen('login');
   const navigateToHome = (user) => {
@@ -58,9 +64,13 @@ export default function App() {
         <Home 
           currentUser={currentUser}
           onLogout={handleLogout}
+          onNextPage={navigateToNext}
+          health={planetHealth}          
+          setHealth={setPlanetHealth} 
         />
       )}
       <StatusBar style="auto" />
+      {currentScreen === 'planetpage' && <PlanetPage health={planetHealth} setHealth={setPlanetHealth} />}
     </>
   );
 }
