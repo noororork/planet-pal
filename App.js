@@ -8,8 +8,8 @@ import TasksScreen from './pages/TasksScreen';
 import ChatbotScreen from './pages/ChatbotScreen';
 
 export default function App() {
-  const [planetHealth, setPlanetHealth] = useState(100);
-  const [currentScreen, setCurrentScreen] = useState('home'); // 'login', 'signup', 'home'
+  const [planetHealth, setPlanetHealth] = useState(27);
+  const [currentScreen, setCurrentScreen] = useState('login'); // 'login', 'signup', 'home'
   const [currentUser, setCurrentUser] = useState(null);
 
   const navigateToNext = (healthValue) => {
@@ -59,9 +59,7 @@ export default function App() {
           currentUser={currentUser}
           onLogout={handleLogout}
           onNextPage={navigateToNext}
-          onNavigateToTasks={navigateToTasks}
-          onNavigateToChatbot={navigateToChatbot}
-          health={planetHealth}          
+          planetHealth={planetHealth}          
           setHealth={setPlanetHealth} 
         />
       )}
