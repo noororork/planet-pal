@@ -9,7 +9,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  Linking // Used to open source links, if needed
+  Linking, // Used to open source links, if needed
+  ImageBackground // <-- Added ImageBackground
 } from 'react-native';
 
 // --- MOCK FIREBASE SETUP (REQUIRED FOR SINGLE-FILE DEMO) ---
@@ -35,8 +36,9 @@ const mockCurrentUser = {
 
 
 // Gemini API Setup
-const apiKey = ""; // Will be provided by the execution environment
-const apiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+// NOTE: I've updated the model name to the modern preview version for clarity.
+const apiKey = ""; 
+const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`; 
 
 
 export default function ChatbotScreen({ onBack, currentUser = mockCurrentUser }) {
@@ -56,7 +58,6 @@ export default function ChatbotScreen({ onBack, currentUser = mockCurrentUser })
     scrollViewRef.current?.scrollToEnd({ animated: true });
   };
   
-  // Ensures scroll runs after layout/content updates
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
@@ -171,8 +172,6 @@ export default function ChatbotScreen({ onBack, currentUser = mockCurrentUser })
     }
   }, [inputText, loading, messages]);
   
-  // Note: We cannot use onKeyDown in RN, but TextInput handles submission via onSubmitEditing.
-
   const renderMessage = (message, index) => {
     const isUser = message.role === 'user';
     
@@ -213,84 +212,106 @@ export default function ChatbotScreen({ onBack, currentUser = mockCurrentUser })
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+    <ImageBackground
+      source={require('../resources/9.png')} // Set the background image
+      style={styles.background}
+      resizeMode="cover"
     >
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} style={styles.backButton}>
-          <Text style={styles.backButtonText}>← Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.title}>Wellness Chat 💬</Text>
-      </View>
-
-      {/* Messages */}
-      <ScrollView 
-        ref={scrollViewRef}
-        style={styles.messagesContainer}
-        contentContainerStyle={styles.messagesContent}
-        onContentSizeChange={scrollToBottom} // Ensure auto-scroll on content update
+      <KeyboardAvoidingView 
+        style={styles.contentWrapper} // New wrapper style to apply overlay and flex
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
-        {messages.map((message, index) => renderMessage(message, index))}
-        {loading && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="small" color="#A78BFA" />
-            <Text style={styles.loadingText}>Companion is thinking...</Text>
-          </View>
-        )}
-      </ScrollView>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={onBack} style={styles.backButton}>
+            <Text style={styles.backButtonText}>← Back</Text>
+          </TouchableOpacity>
+          <Text style={styles.title}>Wellness Chat!! </Text>
+        </View>
 
-      {/* Input */}
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          value={inputText}
-          onChangeText={setInputText}
-          placeholder="Ask me anything about wellness..."
-          placeholderTextColor="#8B7BC3"
-          multiline
-          maxLength={500}
-          returnKeyType="send"
-          onSubmitEditing={sendMessage} // Allows 'Enter' or 'Send' key to trigger message
-        />
-        <TouchableOpacity 
-          style={[styles.sendButton, (!inputText.trim() || loading) && styles.sendButtonDisabled]}
-          onPress={sendMessage}
-          disabled={!inputText.trim() || loading}
+        {/* Messages */}
+        <ScrollView 
+          ref={scrollViewRef}
+          style={styles.messagesContainer}
+          contentContainerStyle={styles.messagesContent}
+          onContentSizeChange={scrollToBottom}
         >
-          <Text style={styles.sendButtonText}>Send</Text>
-        </TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
+          {messages.map((message, index) => renderMessage(message, index))}
+          {loading && (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color={styles.loadingText.color} />
+              <Text style={styles.loadingText}>Companion is thinking...</Text>
+            </View>
+          )}
+        </ScrollView>
+
+        {/* Input */}
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            value={inputText}
+            onChangeText={setInputText}
+            placeholder="Ask me anything about wellness..."
+            placeholderTextColor={styles.placeholder.color}
+            multiline
+            maxLength={500}
+            returnKeyType="send"
+            onSubmitEditing={sendMessage}
+          />
+          <TouchableOpacity 
+            style={[styles.sendButton, (!inputText.trim() || loading) && styles.sendButtonDisabled]}
+            onPress={sendMessage}
+            disabled={!inputText.trim() || loading}
+          >
+            <Text style={styles.sendButtonText}>Send</Text>
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+    </ImageBackground>
   );
 }
 
+// --- COLOR PALETTE (Pastel Blue/Green/Yellow) ---
+// Deep Teal Blue: #1C3B5E (Base/Dark)
+// Soft Blue/Grey: #396C8E (Card BG)
+// Teal Blue Accent: #60B3B0 (Primary Button)
+// Mint Green: #8EE4AF (Accents/Loading)
+// Pale Cyan: #E0F7FA (Light Text)
+// Pastel Orange: #FFB347 (User Bubble/Focus)
+
 const styles = StyleSheet.create({
-  container: {
+  // Base background style for ImageBackground
+  background: {
     flex: 1,
-    backgroundColor: '#1E1B4B', // Dark indigo background
+    width: '100%',
+    height: '100%',
+  },
+  // Wrapper for KeyboardAvoidingView to apply the dark overlay
+  contentWrapper: {
+    flex: 1,
+    backgroundColor: 'rgba(28, 59, 94, 0.9)', // Deep Teal Blue overlay
   },
   header: {
     paddingTop: 60,
     paddingBottom: 20,
     paddingHorizontal: 20,
-    backgroundColor: '#2D2463', // Slightly lighter header
+    backgroundColor: '#1C3B5E', // Deep Teal Blue header
     borderBottomWidth: 1,
-    borderBottomColor: '#4C3A8F',
+    borderBottomColor: 'rgba(96, 179, 176, 0.5)', // Transparent Teal border
   },
   backButton: {
     marginBottom: 10,
   },
   backButtonText: {
-    color: '#A78BFA', // Violet accent
+    color: '#8EE4AF', // Mint Green
     fontSize: 16,
+    fontWeight: '600',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#E0F7FA', // Pale Cyan text
   },
   messagesContainer: {
     flex: 1,
@@ -301,39 +322,40 @@ const styles = StyleSheet.create({
   },
   messageBubble: {
     maxWidth: '85%',
-    padding: 12,
-    borderRadius: 16,
+    padding: 14, // Slightly larger padding
+    borderRadius: 18, // More rounded corners
     marginBottom: 12,
   },
   userBubble: {
     alignSelf: 'flex-end',
-    backgroundColor: '#7C3AED', // Vibrant violet for user
-    borderBottomRightRadius: 4,
+    backgroundColor: '#FFB347', // Pastel Orange for user
+    borderBottomRightRadius: 6,
   },
   assistantBubble: {
     alignSelf: 'flex-start',
-    backgroundColor: '#2D2463', // Darker violet for assistant
-    borderBottomLeftRadius: 4,
+    backgroundColor: '#396C8E', // Soft Blue/Grey for assistant
+    borderBottomLeftRadius: 6,
   },
   messageText: {
     fontSize: 15,
-    lineHeight: 20,
+    lineHeight: 22,
   },
   userText: {
-    color: '#fff',
+    color: '#1C3B5E', // Dark text on light bubble
+    fontWeight: '500',
   },
   assistantText: {
-    color: '#E0D7FF', // Light violet text
+    color: '#E0F7FA', // Pale Cyan text on dark bubble
   },
   sourceContainer: {
     marginTop: 8,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(124, 58, 237, 0.5)', // Transparent violet line
+    borderTopColor: 'rgba(142, 228, 175, 0.5)', // Mint Green transparent line
   },
   sourceHeader: {
     fontSize: 11,
-    color: '#A78BFA',
+    color: '#8EE4AF', // Mint Green
     marginBottom: 4,
     fontWeight: '600',
   },
@@ -342,58 +364,64 @@ const styles = StyleSheet.create({
   },
   sourceLinkText: {
     fontSize: 10,
-    color: '#93C5FD', // Light blue/violet for links
+    color: '#A9D6E5', // Light Blue links
   },
   loadingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    backgroundColor: '#2D2463',
+    backgroundColor: '#396C8E', // Soft Blue/Grey
     padding: 12,
-    borderRadius: 16,
+    borderRadius: 18,
     marginBottom: 12,
   },
   loadingText: {
-    color: '#A78BFA',
+    color: '#8EE4AF', // Mint Green
     marginLeft: 8,
     fontSize: 14,
   },
   inputContainer: {
     flexDirection: 'row',
     padding: 16,
-    backgroundColor: '#2D2463',
+    backgroundColor: '#1C3B5E', // Deep Teal Blue
     borderTopWidth: 1,
-    borderTopColor: '#4C3A8F',
+    borderTopColor: 'rgba(96, 179, 176, 0.5)',
     alignItems: 'flex-end',
   },
   input: {
     flex: 1,
-    backgroundColor: '#1E1B4B',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    paddingTop: 10,
-    color: '#fff',
+    backgroundColor: '#1C3B5E', // Match container for seamless look
+    borderRadius: 25,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    paddingTop: 12,
+    color: '#E0F7FA',
     fontSize: 15,
     maxHeight: 100,
     marginRight: 12,
-    textAlignVertical: 'top', // For Android multiline text
+    borderWidth: 1,
+    borderColor: '#396C8E',
+    textAlignVertical: 'top',
+  },
+  placeholder: {
+    color: '#A9D6E5', // Light Blue placeholder text
   },
   sendButton: {
-    backgroundColor: '#7C3AED',
+    backgroundColor: '#60B3B0', // Teal Blue Accent
     paddingHorizontal: 20,
     paddingVertical: 10,
-    borderRadius: 20,
+    borderRadius: 25,
     justifyContent: 'center',
-    height: 40,
+    height: 48, // Taller button
+    width: 65, // Fixed width
   },
   sendButtonDisabled: {
-    backgroundColor: '#4C3A8F',
-    opacity: 0.5,
+    backgroundColor: 'rgba(57, 108, 142, 0.5)', // Muted Soft Blue/Grey
+    opacity: 1,
   },
   sendButtonText: {
-    color: '#fff',
+    color: '#E0F7FA',
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '700',
   },
 });

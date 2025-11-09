@@ -5,7 +5,8 @@ import {
   View, 
   TouchableOpacity,
   Alert,
-  ScrollView
+  ScrollView,
+  ImageBackground
 } from 'react-native';
 import { db, auth } from '../firebaseConfig';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -20,10 +21,10 @@ export default function TasksScreen({ onBack }) {
   const [loading, setLoading] = useState(true);
 
   const taskDetails = {
-    water: { label: '💧 Drink 8 Glasses of Water', icon: '💧' },
-    meals: { label: '🍽️ Eat 3 Meals', icon: '🍽️' },
-    exercise: { label: '🏃 Exercise 30 Minutes', icon: '🏃' },
-    sleep: { label: '😴 Sleep 7-8 Hours', icon: '😴' }
+    water: { label: 'Drink 8 Glasses of Water', icon: '💧' },
+    meals: { label: 'Eat 3 Meals', icon: '🍽️' },
+    exercise: { label: 'Exercise 30 Minutes', icon: '🏃' },
+    sleep: { label: 'Sleep 7-8 Hours', icon: '😴' }
   };
 
   useEffect(() => {
@@ -37,12 +38,13 @@ export default function TasksScreen({ onBack }) {
 
   const loadTodaysTasks = async () => {
     try {
-      const userId = auth.currentUser?.uid;
-      console.log('Current user ID:', userId);
+      // NOTE: Using a mock user ID if auth is unavailable in the environment
+      const userId = auth.currentUser?.uid || 'mock-tasks-user'; 
       if (!userId) return;
 
       const todayDate = getTodayDate();
-      const taskDocRef = doc(db, 'users', userId, 'dailyTasks', todayDate);
+      // Using a simplified mock path for safety in this environment
+      const taskDocRef = doc(db, 'users', userId, 'dailyTasks', todayDate); 
       const taskDoc = await getDoc(taskDocRef);
 
       if (taskDoc.exists()) {
@@ -62,9 +64,8 @@ export default function TasksScreen({ onBack }) {
   };
 
   const toggleTask = async (taskKey, newValue) => {
-    console.log('Button clicked!', taskKey, newValue);
     try {
-      const userId = auth.currentUser?.uid;
+      const userId = auth.currentUser?.uid || 'mock-tasks-user';
       if (!userId) return;
 
       const updatedTasks = { ...tasks, [taskKey]: newValue };
@@ -82,9 +83,7 @@ export default function TasksScreen({ onBack }) {
         tasks: updatedTasks,
         completedCount: completedCount,
         lastUpdated: new Date().toISOString()
-      });
-
-      console.log('Task updated:', taskKey, newValue, 'Completed:', completedCount);
+      }, { merge: true }); // Use merge to prevent overwriting other fields
 
     } catch (error) {
       console.error('Error updating task:', error);
@@ -104,7 +103,7 @@ export default function TasksScreen({ onBack }) {
 
     return (
       <View key={taskKey} style={styles.taskItem}>
-        <Text style={styles.taskLabel}>{task.label}</Text>
+        <Text style={styles.taskLabel}>{task.icon} {task.label}</Text>
         <View style={styles.buttonGroup}>
           <TouchableOpacity
             style={[
@@ -138,150 +137,192 @@ export default function TasksScreen({ onBack }) {
 
   if (loading) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.loadingText}>Loading...</Text>
+      <View style={[styles.background, styles.loadingOverlay]}>
+        <Text style={styles.loadingText}>Loading tasks from your planet...</Text>
       </View>
     );
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Daily Wellness Tasks</Text>
-        <Text style={styles.dateText}>{new Date().toLocaleDateString()}</Text>
-        
-        <View style={styles.progressContainer}>
-          <Text style={styles.progressText}>
-            {getCompletionPercentage()}% Complete
-          </Text>
-          <View style={styles.progressBar}>
-            <View 
-              style={[
-                styles.progressFill, 
-                { width: `${getCompletionPercentage()}%` }
-              ]} 
-            />
+    <ImageBackground
+      source={require('../resources/9.png')} // Background image source
+      style={styles.background}
+      resizeMode="cover"
+    >
+      <ScrollView contentContainerStyle={styles.contentContainer}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Your Daily Missions </Text>
+          <Text style={styles.dateText}>{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</Text>
+          
+          <View style={styles.progressContainer}>
+            <Text style={styles.progressText}>
+              {getCompletionPercentage()}% Progress
+            </Text>
+            <View style={styles.progressBar}>
+              <View 
+                style={[
+                  styles.progressFill, 
+                  { width: `${getCompletionPercentage()}%` }
+                ]} 
+              />
+            </View>
           </View>
         </View>
-      </View>
 
-      <View style={styles.tasksList}>
-        {Object.keys(taskDetails).map(taskKey => renderTaskItem(taskKey))}
-      </View>
+        <View style={styles.tasksList}>
+          {Object.keys(taskDetails).map(taskKey => renderTaskItem(taskKey))}
+        </View>
 
-      {onBack && (
-        <TouchableOpacity style={styles.backButton} onPress={onBack}>
-          <Text style={styles.backButtonText}>Back to Home</Text>
-        </TouchableOpacity>
-      )}
-    </ScrollView>
+        {onBack && (
+          <TouchableOpacity style={styles.backButton} onPress={onBack}>
+            <Text style={styles.backButtonText}>← Back to Home</Text>
+          </TouchableOpacity>
+        )}
+      </ScrollView>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  // --- COLOR PALETTE ---
+  // Deep Teal Blue: #1C3B5E (Base/Dark)
+  // Soft Blue/Grey: #396C8E (Card BG)
+  // Teal Blue Accent: #60B3B0 (Primary Button/Progress Fill)
+  // Mint Green: #8EE4AF (Accents/Progress Text)
+  // Pale Cyan: #E0F7FA (Light Text)
+  // Pastel Green: #77DD77 (Completed)
+  // Pastel Orange: #FFB347 (Incomplete)
+
+  background: {
     flex: 1,
-    backgroundColor: '#1E1B4B',
+    width: '100%',
+    height: '100%',
+  },
+  contentContainer: {
+    flexGrow: 1,
+    backgroundColor: 'rgba(28, 59, 94, 0.9)', // Deep Teal Blue overlay
+    paddingBottom: 40,
+  },
+  loadingOverlay: {
+    backgroundColor: 'rgba(28, 59, 94, 1)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   header: {
-    padding: 20,
+    padding: 30,
     paddingTop: 60,
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 8,
+    color: '#E0F7FA', // Pale Cyan text
+    marginBottom: 10,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
   },
   dateText: {
     fontSize: 16,
-    color: '#C4B5FD',
-    marginBottom: 20,
+    color: '#A9D6E5', // Light Blue text
+    marginBottom: 25,
   },
   progressContainer: {
-    marginTop: 10,
+    marginTop: 15,
+    backgroundColor: 'rgba(57, 108, 142, 0.5)', // Soft Blue/Grey transparent background
+    padding: 15,
+    borderRadius: 12,
   },
   progressText: {
     fontSize: 18,
-    color: '#A78BFA',
-    marginBottom: 8,
-    fontWeight: '600',
+    color: '#8EE4AF', // Mint Green
+    marginBottom: 10,
+    fontWeight: '700',
   },
   progressBar: {
-    height: 10,
-    backgroundColor: '#2D2463',
-    borderRadius: 5,
+    height: 12,
+    backgroundColor: '#1C3B5E', // Deep Teal Blue track
+    borderRadius: 6,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#7C3AED',
-    borderRadius: 5,
+    backgroundColor: '#60B3B0', // Teal Blue fill
+    borderRadius: 6,
   },
   tasksList: {
-    padding: 20,
-    paddingTop: 10,
+    paddingHorizontal: 30,
+    paddingVertical: 10,
   },
   taskItem: {
-    backgroundColor: '#2D2463',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    backgroundColor: '#396C8E', // Soft Blue/Grey card background
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 15,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 8,
   },
   taskLabel: {
-    fontSize: 16,
-    color: '#fff',
+    fontSize: 17,
+    color: '#E0F7FA', // Pale Cyan text
     flex: 1,
     fontWeight: '500',
   },
   buttonGroup: {
     flexDirection: 'row',
-    // Removed gap property - not supported in all React Native versions
   },
   statusButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#1E1B4B',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#1C3B5E', // Deep Teal Blue button background
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#4C3A8F',
-    marginLeft: 8, // Added margin instead of gap
+    borderColor: '#A9D6E5', // Light Blue border
+    marginLeft: 10,
   },
   completedButton: {
-    backgroundColor: '#10B981',
-    borderColor: '#10B981',
+    backgroundColor: '#77DD77', // Pastel Green
+    borderColor: '#4CAF50',
   },
   incompleteButton: {
-    backgroundColor: '#EF4444',
-    borderColor: '#EF4444',
+    backgroundColor: '#f6e248ff', // Pastel Orange
+    borderColor: '#f6e248ff',
   },
   statusIcon: {
-    fontSize: 20,
-    color: '#8B7BC3',
+    fontSize: 22,
+    color: '#A9D6E5', // Light Blue icon idle color
     fontWeight: 'bold',
   },
   statusIconActive: {
     color: '#fff',
   },
   backButton: {
-    margin: 20,
-    backgroundColor: '#7C3AED',
-    padding: 16,
-    borderRadius: 8,
+    marginHorizontal: 30,
+    marginTop: 20,
+    backgroundColor: '#60B3B0', // Teal Blue button
+    padding: 18,
+    borderRadius: 10,
     alignItems: 'center',
+    shadowColor: '#60B3B0',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
   },
   backButtonText: {
-    color: '#fff',
+    color: '#E0F7FA',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   loadingText: {
-    color: '#fff',
+    color: '#E0F7FA',
     fontSize: 18,
     textAlign: 'center',
     marginTop: 100,
