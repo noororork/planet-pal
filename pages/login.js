@@ -5,7 +5,8 @@ import {
   View, 
   TextInput, 
   TouchableOpacity,
-  Alert 
+  Alert,
+  ImageBackground // <-- Added ImageBackground
 } from 'react-native';
 import { auth, db } from '../firebaseConfig';
 import { signInWithEmailAndPassword } from 'firebase/auth';
@@ -47,44 +48,59 @@ export default function LoginScreen({ onNavigateToSignUp, onLoginSuccess }) {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>🌍 Wellness Planet</Text>
-      <Text style={styles.subtitle}>Welcome Back</Text>
+    <ImageBackground
+      source={require('../resources/9.png')} // Replace with your actual image path if different
+      style={styles.background}
+      resizeMode="cover"
+    >
+      <View style={styles.contentContainer}>
+        <Text style={styles.title}>Wellness Planet</Text> 
+        <Text style={styles.subtitle}>Welcome Back</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="Email"
+          placeholderTextColor="#6B7280" // Placeholder color from the second file
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          placeholderTextColor="#6B7280" // Placeholder color from the second file
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
 
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Login</Text>
-      </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={handleLogin}>
+          <Text style={styles.buttonText}>Login</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity onPress={onNavigateToSignUp}>
-        <Text style={styles.link}>
-          Don't have an account? Sign up
-        </Text>
-      </TouchableOpacity>
-    </View>
+        <TouchableOpacity onPress={onNavigateToSignUp}>
+          <Text style={styles.link}>
+            Don't have an account? Sign up
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  // Styles from the second file
+  background: {
     flex: 1,
-    backgroundColor: '#1E1B4B',
+    width: '100%',
+    height: '100%',
+  },
+  contentContainer: {
+    flex: 1,
+    // Semi-transparent overlay for text readability over the image
+    backgroundColor: 'rgba(30, 27, 75, 0.7)', // Darker overlay
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
@@ -97,7 +113,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 18,
-    color: '#C4B5FD',
+    color: '#fff', // White subtitle for contrast
     marginBottom: 32,
   },
   input: {
@@ -107,10 +123,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 12,
     fontSize: 16,
+    color: '#1E1B4B', // Ensure input text is dark
   },
   button: {
     width: '100%',
-    backgroundColor: '#7C3AED',
+    backgroundColor: '#52869eff', // Button color from the second file
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
@@ -122,7 +139,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   link: {
-    color: '#A78BFA',
+    color: '#fff', // White link color for contrast
     marginTop: 20,
     fontSize: 14,
     textDecorationLine: 'underline',
