@@ -3,10 +3,15 @@ import { ImageBackground, StyleSheet, View, Text, TouchableOpacity } from "react
 
 export default function PlanetPage({ 
     health, 
-    setHealth,
-    // Add the navigation prop here
-    onNavigateToHome // <-- NEW PROP for navigating back to Home.js
+    setHealth, 
+    currentUser, // Required for displaying planet name (if available)
+    onLogout, 
+    onNavigateToTasks, 
+    onNavigateToChatbot, 
+    onNavigateToShop,
+    onNavigateToFriends
 }) {
+    // Current health determines the background image
     const [backgroundImage, setBackgroundImage] = useState(require("../resources/9.png"));
 
     const updateHealthImage = (health) => {
