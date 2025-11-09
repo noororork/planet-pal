@@ -59,6 +59,8 @@ export default function App() {
           currentUser={currentUser}
           onLogout={handleLogout}
           onNextPage={navigateToNext}
+          onNavigateToTasks={navigateToTasks}
+          onNavigateToChatbot={navigateToChatbot}
           planetHealth={planetHealth}          
           setHealth={setPlanetHealth} 
         />

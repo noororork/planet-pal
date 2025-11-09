@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ImageBackground, StyleSheet, View, Text, Button, TouchableOpacity } from "react-native";
 
-//export default function MainScreen({ currentUser, onLogout, onNextPage, onNavigateToTasks, onNavigateToChatbot }) {
-    //const [health, setHealth] = useState(100);
-export default function Home({ currentUser, onLogout, onNextPage, planetHealth}) {
+export default function Home({ currentUser, onLogout, onNextPage, onNavigateToTasks, onNavigateToChatbot, planetHealth }) {
     const [backgroundImage, setBackgroundImage] = useState(require("../resources/9.png"));
 
     const updateHealthImage = (planetHealth) => {
@@ -11,7 +9,7 @@ export default function Home({ currentUser, onLogout, onNextPage, planetHealth})
         else if (planetHealth >= 60) return require("../resources/7.png");
         else if (planetHealth >= 40) return require("../resources/5.png");
         else if (planetHealth >= 20) return require("../resources/3.png");
-        else if (planetHealth >= 0) return require("../resources/1.png");
+        else return require("../resources/1.png");
     };
 
     useEffect(() => {
@@ -20,13 +18,13 @@ export default function Home({ currentUser, onLogout, onNextPage, planetHealth})
 
     const handleNextPage = () => {
         if (onNextPage) {
-          onNextPage(planetHealth); // pass the health value up to App.js
+            onNextPage(planetHealth); // pass the health value up to App.js
         }
     };
 
     return (
-        <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => onNextPage(planetHealth)}>
-            <ImageBackground source = {backgroundImage} style = {styles.background} resizeMode = "cover">
+        <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={handleNextPage}>
+            <ImageBackground source={backgroundImage} style={styles.background} resizeMode="cover">
                 <View style={styles.container}>
                     <Text style={styles.title}>Welcome!</Text>
                     {currentUser?.planetName && (
@@ -41,15 +39,15 @@ export default function Home({ currentUser, onLogout, onNextPage, planetHealth})
                             <Text style={styles.buttonText}>Daily Tasks</Text>
                         </TouchableOpacity>
                         
-                        <TouchableOpacity style={styles.button} onPress={onLogout}>
-                            <Text style={styles.buttonText}>Logout</Text>
-                        </TouchableOpacity>
-
                         <TouchableOpacity 
                             style={styles.button} 
                             onPress={onNavigateToChatbot}
-                            >
+                        >
                             <Text style={styles.buttonText}>💬 Wellness Chat</Text>
+                        </TouchableOpacity>
+                        
+                        <TouchableOpacity style={styles.button} onPress={onLogout}>
+                            <Text style={styles.buttonText}>Logout</Text>
                         </TouchableOpacity>
                     </View>
                 </View>

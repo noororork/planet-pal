@@ -8,8 +8,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator,
-  Alert
+  ActivityIndicator
 } from 'react-native';
 import { db, auth } from '../firebaseConfig';
 import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
@@ -72,7 +71,7 @@ export default function ChatbotScreen({ onBack, currentUser }) {
         const completedTasks = taskData.reduce((sum, day) => sum + (day.completedCount || 0), 0);
         const completionRate = Math.round((completedTasks / totalTasks) * 100);
         
-        contextMessage = `Context: The user has completed ${completionRate}% of their wellness tasks over the last ${taskData.length} days. `;
+        contextMessage = `Context: The user has completed ${completionRate}% of their wellness tasks over the last ${taskData.length} days. Recent task completion: ${JSON.stringify(taskData.slice(0, 3))}. `;
       }
 
       // Call Anthropic API
@@ -85,55 +84,22 @@ export default function ChatbotScreen({ onBack, currentUser }) {
           model: "claude-sonnet-4-20250514",
           max_tokens: 1000,
           system: `You are a friendly, supportive wellness companion for a wellness app called "Wellness Planet" where users track daily tasks (drinking water, eating meals, exercise, sleep). ${contextMessage}Be encouraging, provide practical wellness advice, and keep responses concise (2-3 paragraphs max). Use emojis occasionally to be friendly. If users ask about their progress, reference their task completion data.`,
-          messages: messages
-            .filter(m => m.role !== 'assistant' || messages.indexOf(m) > 0) // Skip initial greeting
-            .map(m => ({
-              role: m.role,
-              content: m.content
-            }))
-            .concat([
-              { role: 'user', content: userMessage }
-            ])
+          messages: messages.map(m => ({
+            role: m.role,
+            content: m.content
+          })).concat([
+            { role: 'user', content: userMessage }
+          ])
         })
       });
 
-      // Check if response is ok
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('API Error Response:', errorText);
-        throw new Error(`API returned status ${response.status}: ${errorText}`);
-      }
-
       const data = await response.json();
       
-      // Log the response to debug
-      console.log('API Response:', JSON.stringify(data, null, 2));
-
-      // Check if response has error
-      if (data.error) {
-        throw new Error(data.error.message || 'API Error');
-      }
-
-      // Check if content exists and is an array
-      if (!data.content) {
-        console.error('No content in response:', data);
-        throw new Error('No content in API response');
-      }
-
-      if (!Array.isArray(data.content)) {
-        console.error('Content is not an array:', data.content);
-        throw new Error('Unexpected content format');
-      }
-
       // Extract assistant's response
       const assistantMessage = data.content
-        .filter(item => item && item.type === 'text')
+        .filter(item => item.type === 'text')
         .map(item => item.text)
         .join('\n');
-
-      if (!assistantMessage || assistantMessage.trim() === '') {
-        throw new Error('No text content in response');
-      }
 
       // Add assistant response to chat
       setMessages(prev => [...prev, { 
@@ -143,25 +109,9 @@ export default function ChatbotScreen({ onBack, currentUser }) {
 
     } catch (error) {
       console.error('Error calling chatbot:', error);
-      console.error('Error message:', error.message);
-      console.error('Error stack:', error.stack);
-      
-      // Show user-friendly error
-      let errorMessage = "I'm having trouble connecting right now. ";
-      
-      if (error.message.includes('Network request failed')) {
-        errorMessage += "Please check your internet connection.";
-      } else if (error.message.includes('401') || error.message.includes('403')) {
-        errorMessage += "There's an authentication issue with the AI service.";
-      } else if (error.message.includes('429')) {
-        errorMessage += "Too many requests. Please wait a moment and try again.";
-      } else {
-        errorMessage += `Error: ${error.message}`;
-      }
-      
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: errorMessage + " 😊" 
+        content: "I'm sorry, I'm having trouble connecting right now. Please try again! 😊" 
       }]);
     } finally {
       setLoading(false);
