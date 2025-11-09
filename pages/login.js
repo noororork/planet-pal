@@ -7,8 +7,9 @@ import {
   TouchableOpacity,
   Alert 
 } from 'react-native';
-import { auth } from '../firebaseConfig';
+import { auth, db } from '../firebaseConfig';
 import { signInWithEmailAndPassword } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 
 export default function LoginScreen({ onNavigateToSignUp, onLoginSuccess }) {
   const [email, setEmail] = useState('');
@@ -22,7 +23,23 @@ export default function LoginScreen({ onNavigateToSignUp, onLoginSuccess }) {
 
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      onLoginSuccess({ email: userCredential.user.email });
+      const userId = userCredential.user.uid;
+      
+      // Fetch user data from Firestore
+      const userDoc = await getDoc(doc(db, 'users', userId));
+      
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        onLoginSuccess({ 
+          email: userCredential.user.email,
+          planetName: userData.planetName,
+          displayName: userData.displayName,
+          userId: userId
+        });
+      } else {
+        onLoginSuccess({ email: userCredential.user.email, userId: userId });
+      }
+      
       Alert.alert('Success', 'Logged in!');
     } catch (error) {
       Alert.alert('Error', error.message);

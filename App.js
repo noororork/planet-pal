@@ -24,6 +24,10 @@ export default function App() {
     setCurrentScreen('chatbot');
   };
 
+  const navigateToFriends = () => {
+    setCurrentScreen('friends');
+  };
+
   const navigateToSignUp = () => setCurrentScreen('signup');
   const navigateToLogin = () => setCurrentScreen('login');
   
@@ -39,10 +43,6 @@ export default function App() {
 
   const navigateToTasks = () => {
     setCurrentScreen('tasks');
-  };
-
-  const navigateToFriends = () => {
-    setCurrentScreen('friends');
   };
 
   const navigateToFriendPlanet = (friend) => {
@@ -77,6 +77,7 @@ export default function App() {
           onNextPage={navigateToNext}
           onNavigateToTasks={navigateToTasks}
           onNavigateToChatbot={navigateToChatbot}
+          onNavigateToFriends={navigateToFriends}
           planetHealth={planetHealth}          
           setHealth={setPlanetHealth} 
         />
@@ -124,6 +125,11 @@ export default function App() {
         />
       )}
 
+
+        <FriendsScreen 
+          onBack={() => setCurrentScreen('home')}
+          currentUser={currentUser}
+        />
 
       <StatusBar style="auto" />
     </>

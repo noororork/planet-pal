@@ -15,9 +15,10 @@ export default function SignUpScreen({ onNavigateToLogin, onSignUpSuccess }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [planetName, setPlanetName] = useState('');
+  const [displayName, setDisplayName] = useState('');
 
   const handleSignUp = async () => {
-    if (!planetName || !email || !password) {
+    if (!planetName || !email || !password || !displayName) {
       Alert.alert('Error', 'Please fill all fields');
       return;
     }
@@ -26,28 +27,16 @@ export default function SignUpScreen({ onNavigateToLogin, onSignUpSuccess }) {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const userId = userCredential.user.uid;
 
-      // Save planet name to Firestore
+      // Save user data to Firestore
       await setDoc(doc(db, 'users', userId), {
         planetName: planetName,
+        displayName: displayName,
         email: email,
+        friendCount: 0,
         createdAt: new Date().toISOString()
       });
 
-      onSignUpSuccess({ email, planetName });
-      const userDocRef = doc(db, 'friends', auth.currentUser.uid);
-
-      // Use 'setDoc' to create the necessary document container
-      try {
-        await setDoc(userDocRef, { 
-          // This document acts as the container for the 'userFriends' subcollection
-          initialized: true,
-          joinDate: new Date(),
-        });
-        console.log("Friends container initialized for new user.");
-
-      } catch (error) {
-        console.error("Error initializing friends container:", error);
-      }
+      onSignUpSuccess({ email, planetName, displayName });
       Alert.alert('Success', 'Account created!');
     } catch (error) {
       Alert.alert('Error', error.message);
@@ -58,6 +47,13 @@ export default function SignUpScreen({ onNavigateToLogin, onSignUpSuccess }) {
     <View style={styles.container}>
       <Text style={styles.title}>🌍 Wellness Planet</Text>
       <Text style={styles.subtitle}>Create Account</Text>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Display Name (for friends to find you)"
+        value={displayName}
+        onChangeText={setDisplayName}
+      />
 
       <TextInput
         style={styles.input}
