@@ -7,7 +7,8 @@ export default function Home({
     onNextPage, 
     onNavigateToTasks, 
     onNavigateToChatbot, 
-    onNavigateToShop, // New prop for shop navigation
+    onNavigateToShop,
+    onNavigateToFriends, // New prop for friends navigation
     planetHealth 
 }) {
     const [backgroundImage, setBackgroundImage] = useState(require("../resources/9.png"));
@@ -36,10 +37,10 @@ export default function Home({
         <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={handleNextPage}>
             <ImageBackground source={backgroundImage} style={styles.background} resizeMode="cover">
                 
-                {/* TOP RIGHT ICON CONTAINER */}
+                {/* TOP RIGHT ICON CONTAINER: Shop, Friends, Exit */}
                 <View style={styles.topRightContainer}>
                     
-                    {/* Shop Icon */}
+                    {/* Shop Icon (First in row, no left margin) */}
                     <TouchableOpacity 
                         style={styles.topIcon} 
                         onPress={onNavigateToShop}
@@ -47,7 +48,15 @@ export default function Home({
                         <Text style={styles.topIconText}>🛒 Shop</Text>
                     </TouchableOpacity>
                     
-                    {/* Exit Icon (Logout) */}
+                    {/* Friends Icon (Space from Shop) */}
+                    <TouchableOpacity 
+                        style={[styles.topIcon, { marginLeft: 10 }]} 
+                        onPress={onNavigateToFriends}
+                    >
+                        <Text style={styles.topIconText}>👥 Friends</Text>
+                    </TouchableOpacity>
+                    
+                    {/* Exit Icon (Logout) (Space from Friends) */}
                     <TouchableOpacity 
                         style={[styles.topIcon, { marginLeft: 10 }]} 
                         onPress={onLogout} 
@@ -79,8 +88,6 @@ export default function Home({
                         >
                             <Text style={styles.buttonText}>💬 Wellness Chat</Text>
                         </TouchableOpacity>
-                        
-                        {/* The original Logout button is now handled by the '🚪 Exit' icon above. */}
                     </View>
                 </View>
             </ImageBackground>
@@ -106,16 +113,16 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: 50, // Standard adjustment for status bar/safe area on mobile
         right: 20,
-        flexDirection: 'row', // To align Shop and Exit horizontally
+        flexDirection: 'row', // Crucial for horizontal layout
         zIndex: 10,
     },
     topIcon: {
-        backgroundColor: '#325a6dff', // Semi-transparent dark background
+        backgroundColor: '#325a6dff',
         paddingHorizontal: 10,
         paddingVertical: 8,
         borderRadius: 20,
         borderWidth: 1,
-        borderColor: '#52869eff', // Violet border
+        borderColor: '#52869eff',
     },
     topIconText: {
         color: '#fff',
@@ -126,22 +133,21 @@ const styles = StyleSheet.create({
 
     // --- ENHANCED WELCOME STYLES ---
     greetingTitle: {
-        fontSize: 48, // Slightly smaller than 60, feels less overwhelming
-        fontWeight: '900', // Extra bold
+        fontSize: 48,
+        fontWeight: '900',
         color: '#fff',
         marginBottom: 4,
         marginTop: 100,
-        // Added shadow for a nice glow/depth effect
-        textShadowColor: 'rgba(124, 61, 237, 0.7)', // Subtle violet glow
+        textShadowColor: 'rgba(124, 61, 237, 0.7)',
         textShadowOffset: { width: 0, height: 2 },
         textShadowRadius: 10,
         letterSpacing: 1,
     },
     planetName: {
-        fontSize: 22, // Increased size for prominence
+        fontSize: 22,
         fontWeight: 'bold',
         color: '#52869eff',
-        marginBottom: 30, // Increased spacing below
+        marginBottom: 30,
     },
     // --- END ENHANCED WELCOME STYLES ---
 
@@ -152,10 +158,15 @@ const styles = StyleSheet.create({
     button: {
         width: '100%',
         backgroundColor: '#52869eff',
-        padding: 16,
-        borderRadius: 8,
+        padding: 18,
+        borderRadius: 10,
         alignItems: 'center',
-        marginTop: 8,
+        marginTop: 20,
+        shadowColor: '#52869eff',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 5,
+        elevation: 8,
     },
     buttonText: {
         color: '#fff',

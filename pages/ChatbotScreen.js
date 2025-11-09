@@ -35,7 +35,7 @@ const mockCurrentUser = {
 // --- END MOCK SETUP ---
 
 
-// Gemini API Setup
+//  API SeGeminitup
 // NOTE: I've updated the model name to the modern preview version for clarity.
 const apiKey = ""; 
 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`; 
