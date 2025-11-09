@@ -54,7 +54,7 @@ export default function LoginScreen({ onNavigateToSignUp, onLoginSuccess }) {
       resizeMode="cover"
     >
       <View style={styles.contentContainer}>
-        <Text style={styles.title}>Wellness Planet</Text> 
+        <Text style={styles.title}>Planet Pal</Text> 
         <Text style={styles.subtitle}>Welcome Back</Text>
 
         <TextInput
